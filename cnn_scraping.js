@@ -73,4 +73,5 @@ const scrapeNewsList = async() => {
     }
 }
 
-scrapeNewsList().then(result => console.log('aaa', result));
+//scrapeNewsList().then(result => console.log('aaa', result));
+module.exports = { scrapeNewsList };
