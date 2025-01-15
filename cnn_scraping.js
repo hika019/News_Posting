@@ -38,6 +38,17 @@ const scrapePostDate = async(url) => {
     }
 }
 
+/**
+ * @typedef {Object} NewsItem
+ * @property {string} title - ニュースのタイトル
+ * @property {string} link - ニュースのリンク
+ * @property {Date} date - ニュースの投稿日時
+ */
+
+/**
+ * ニュースのタイトルとリンクをスクレイピングする関数
+ * @returns {Promise<NewsItem[]>} ニュースアイテムの配列を含むPromise
+ */
 const scrapeNewsList = async() => {
     const browser = await puppeteer.launch({ timeout: process.env.TIMEOUT }); // タイムアウトを60秒に延長
     let newsWithDates = [];

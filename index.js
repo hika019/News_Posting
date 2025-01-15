@@ -48,20 +48,27 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-client.on('messageCreate',async msg => {
-    console.log('hello');
-     if(msg.author.bot) {
-        console.log("BOT");
-        return;
-    }
-    console.log(`Received message: ${msg.content}`); // デバッグ用ログ
-    if(msg.content === "hello") {
-        //msg.reply("Hello \n https://www.cnn.co.jp/travel/35228107.html");
-        scrapeNewsList().then(result => {
-            for (const news of result) {
-                msg.reply(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
+setInterval(async () => {
+    if (config.cnn) {
+        console.log('Checking CNN news...');
+        const channel = client.channels.cache.get(config.channel_id);
+        if (!channel) {
+            console.log('Channel not found.');
+            return;
+        }
+
+        const newsList = await scrapeNewsList();
+        const newArticles = newsList.filter(news => new Date(news.date) > lastExecutionTime);
+        lastExecutionTime = new Date();
+
+        if (newArticles.length > 0 && channel) {
+            for (const news of newArticles) {
+                channel.send(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
+                //await interaction.channel.send(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
             }
-        });
+        } else {
+            channel.send('新しい記事はありません。');
+        }
     }
-});
+}, config.polling_time_sec * 1000);
 
