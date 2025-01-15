@@ -2,7 +2,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const { scrapeNewsList } = require('./cnn_scraping');
-
+let config = require('./config.js');
 
 process.on('uncaughtException', (err) => {
     console.log(`${err.stack}`);
@@ -49,9 +49,12 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('messageCreate',async msg => {
+    console.log('hello');
      if(msg.author.bot) {
+        console.log("BOT");
         return;
     }
+    console.log(`Received message: ${msg.content}`); // デバッグ用ログ
     if(msg.content === "hello") {
         //msg.reply("Hello \n https://www.cnn.co.jp/travel/35228107.html");
         scrapeNewsList().then(result => {
