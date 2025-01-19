@@ -1,40 +1,31 @@
-const puppeteer = require('puppeteer');
-process.on('uncaughtException', (err) => {
-    console.log(`${err.stack}`);
-});
-require("dotenv").config();
+const axios = require('axios');
+const cheerio = require('cheerio');
+require('dotenv').config();
+
+const cnn = "https://www.cnn.co.jp";
 
 const scrapePostDate = async(url) => {
-    const browser = await puppeteer.launch({ timeout: process.env.TIMEOUT }); // タイムアウトを60秒に延長
-    let date = null;
+    console.log('Scraping post date from', url);
+
     try {
-        const page = await browser.newPage();
-        await page.goto(url, { timeout: 60000 }); // タイムアウトを60秒に延長
-        const postDate = await page.evaluate(() => {
-            const dateElement = document.querySelector('.metadata-updatetime');
-            var dateText = dateElement.textContent ? dateElement.textContent.trim() : null;
-            console.log(dateText);
-            if (dateText === null) {
-                return null;
-            }
-            dateText = dateText.replace(/[a-zA-Z]+/g, '').replace('    ', ' ').trim();
-            return dateText;
-        });
-        const postDateText = postDate;
-        if (postDateText === null) {
+        const response = await axios.get(url);
+        const $ = cheerio.load(response.data);
+        const dateElement = $('.metadata-updatetime');
+        let dateText = dateElement.text().trim();
+        if (dateText === null) {
             console.log('Date not found');
             return;
         }
-        const [datePart, timePart] = postDateText.split(' ');
-                    const [year, month, day] = datePart.split('.').map(Number);
-                    const [hour, minute] = timePart.split(':').map(Number);
-        date = new Date(year, month - 1, day, hour, minute);
+        dateText = dateText.replace(/[a-zA-Z]+/g, '').replace('    ', ' ').trim();
+        const [datePart, timePart] = dateText.split(' ');
+        const [year, month, day] = datePart.split('.').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+        const date = new Date(year, month - 1, day, hour, minute);
         console.log(date);
+        return date;
     } catch (error) {
         console.error(error);
-    } finally {
-        await browser.close();
-        return date;
+        return null;
     }
 }
 
@@ -50,39 +41,35 @@ const scrapePostDate = async(url) => {
  * @returns {Promise<NewsItem[]>} ニュースアイテムの配列を含むPromise
  */
 const scrapeNewsList = async() => {
-    const browser = await puppeteer.launch({ timeout: process.env.TIMEOUT }); // タイムアウトを60秒に延長
-    let newsWithDates = [];
+    let newsList = [];
     try {
-        const page = await browser.newPage();
-        await page.goto('https://www.cnn.co.jp/archives/'); // タイムアウトを60秒に延長
-        let newsList = await page.evaluate(() => {
-            const news = [];
-            document.querySelectorAll('.list-news-line li').forEach(item => {
-                const links = item.querySelectorAll('a');
-                const title = links.length > 1 ? links[1].textContent.replace(/\n/g, '').trim() : null;
-                const link = item.querySelector('a').href;
-                if (title !== null && link !== null) {
-                    news.push({ title, link });
-                }
-            });
-            return news;
-        });
-        console.log(newsList);;
-        // 非同期処理を待つ
-        newsWithDates = await Promise.all(newsList.map(async (news) => {
-            console.log(news.link);
-            news.date = await scrapePostDate(news.link);
-            return news;
-        }));
+        const response = await axios.get(cnn+'/archives/');
+        const $ = cheerio.load(response.data);
+        const news = [];
 
-        console.log(newsWithDates);
+        $('.pg-container-main .list-news-line li').each((index, element) => {
+            const title = $(element).find('a').text().replace('\n', '').trim();
+            let link = $(element).find('a').attr('href');
+            console.log("list: ", title, link);
+            if (link && !link.startsWith(cnn)) {
+                link = cnn + link;
+            }
+            if (title && link) {
+                newsList.push({ title, link });
+            }
+        });
+
+        //console.log(newsWithDates);
     } catch (error) {
         console.error(error);
     } finally {
-        await browser.close();
+        console.log("finally", newsList);
+        const newsWithDates = await Promise.all(newsList.map(async (news) => {
+            news.date = await scrapePostDate(news.link);
+            return news;
+        }));
         return newsWithDates;
     }
 }
 
-//scrapeNewsList().then(result => console.log('aaa', result));
 module.exports = { scrapeNewsList };

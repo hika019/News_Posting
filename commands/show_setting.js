@@ -6,6 +6,6 @@ module.exports = {
         .setName('show_setting')
         .setDescription('設定を表示します'),
     async execute(interaction) {
-        await interaction.reply(`設定\n投票時間: ${config.polling_time_sec}秒\nCNN: ${config.cnn}\nチャンネルID: ${config.channel_id}`);
+        await interaction.reply(`設定\npolling間隔: ${config.polling_time_sec}秒\nCNN: ${config.cnn}\nチャンネルID: ${config.channel_id}`);
     },
 };

@@ -48,6 +48,7 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
+lastExecutionTime= new Date();
 setInterval(async () => {
     if (config.cnn) {
         console.log('Checking CNN news...');
@@ -67,7 +68,7 @@ setInterval(async () => {
                 //await interaction.channel.send(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
             }
         } else {
-            channel.send('新しい記事はありません。');
+            //channel.send('新しい記事はありません。');
         }
     }
 }, config.polling_time_sec * 1000);
