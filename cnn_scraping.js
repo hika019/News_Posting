@@ -5,7 +5,7 @@ require('dotenv').config();
 const cnn = "https://www.cnn.co.jp";
 
 const scrapePostDate = async(url) => {
-    console.log('Scraping post date from', url);
+    //console.log('Scraping post date from', url);
 
     try {
         const response = await axios.get(url);
@@ -21,7 +21,7 @@ const scrapePostDate = async(url) => {
         const [year, month, day] = datePart.split('.').map(Number);
         const [hour, minute] = timePart.split(':').map(Number);
         const date = new Date(year, month - 1, day, hour, minute);
-        console.log(date);
+        // console.log(date);
         return date;
     } catch (error) {
         console.error(error);
@@ -50,7 +50,7 @@ const scrapeNewsList = async() => {
         $('.pg-container-main .list-news-line li').each((index, element) => {
             const title = $(element).find('a').text().replace('\n', '').trim();
             let link = $(element).find('a').attr('href');
-            console.log("list: ", title, link);
+            // console.log("list: ", title, link);
             if (link && !link.startsWith(cnn)) {
                 link = cnn + link;
             }
@@ -63,7 +63,10 @@ const scrapeNewsList = async() => {
     } catch (error) {
         console.error(error);
     } finally {
-        console.log("finally", newsList);
+        newsList = Array.from(
+            new Map(newsList.map(news => [news.link, news])).values()
+        );
+        //console.log("finally", newsList);
         const newsWithDates = await Promise.all(newsList.map(async (news) => {
             news.date = await scrapePostDate(news.link);
             return news;
