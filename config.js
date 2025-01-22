@@ -1,7 +1,12 @@
-let base_config = {
-    "polling_time_sec": 400,
+const base_config = {
+    "polling_time_sec": 100,
     "cnn": false,
-    "channel_id": "",
+    "channel_id": [],
 };
 
-module.exports = base_config;
+let config = {
+    "base": base_config,
+}
+
+
+module.exports = {config, base_config};

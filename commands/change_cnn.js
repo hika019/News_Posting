@@ -6,11 +6,12 @@ module.exports = {
         .setName('change_cnn')
         .setDescription('設定を表示します'),
     async execute(interaction) {
-        if (config.cnn) {
-            config.cnn = false;
+        const channel_id=interaction.channelId;
+        if (config.config[channel_id].cnn) {
+            config.config[channel_id].cnn = false;
         } else {
-            config.cnn = true;
+            config.config[channel_id].cnn = true;
         }
-        await interaction.reply(`CNN設定が ${config.cnn ? '有効' : '無効'} になりました。`);
+        await interaction.reply(`CNN設定が ${config.config[channel_id].cnn ? '有効' : '無効'} になりました。`);
     },
 };

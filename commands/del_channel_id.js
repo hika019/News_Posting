@@ -4,15 +4,17 @@ const {config, base_config} = require('../config.js'); // config モジュール
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('set_channel')
+        .setName('del_channel')
         .setDescription('ニュースを送信するチャンネルを設定します'),
     async execute(interaction) {
         console.log(interaction.channelId);
-        config[interaction.channelId]=base_config;
+        console.log(config);
+        delete config[interaction.channelId]; // 設定を削除
+        console.log(config);
 
         // config.js ファイルを更新
         fs.writeFileSync('../config.js', `module.exports = ${JSON.stringify(config, null, 4)};`);
 
-        await interaction.reply(`チャンネルIDが ${interaction.channelId} に設定されました。`);
+        await interaction.reply(`設定を削除しました。`);
     },
 };

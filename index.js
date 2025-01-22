@@ -48,30 +48,21 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-const sendMessageToAllServers = async (message) => {
-    client.guilds.cache.forEach(async guild => {
-        const channel = client.channels.cache.get(config.channel_id);
-        if (channel) {
-            await channel.send(message);
-        }
-    });
-};
-
-const setdMessageToStgServer = async (message) => {
-    const channel = client.channels.cache.get(config.channel_id);
+const sendMessageToStgServer = async (channel_id, message) => {
+    const channel = client.channels.cache.get(channel_id);
     client.channels.cache.forEach(async channel => {
         console.log(channel.id);
     });
 
     if (!channel){
         try {
-            channel = await client.channels.fetch(config.channel_id);
+            channel = await client.channels.fetch(channel_id);
         } catch (error) {
-            console.error(`Failed to fetch channel: ${config.channel_id}`, error);
+            console.error(`Failed to fetch channel: ${channel_id}`, error);
         }
     }
 
-    console.log("setdMessageToStgServer", message);
+    console.log("sendMessageToStgServer", message);
     if (channel) {
         await channel.send(message);
     }else{
@@ -79,23 +70,30 @@ const setdMessageToStgServer = async (message) => {
     }
 }
 
-lastExecutionTime= new Date('2025-01-22 00:00:00');
+
+
+lastExecutionTime= new Date();
 setInterval(async () => {
-    if (config.cnn) {
-        console.log(new Date(), 'Checking CNN news...');
+    console.log(new Date(), 'Checking CNN news...');
 
-        const newsList = await scrapeNewsList();
-        const newArticles = newsList.filter(news => new Date(news.date) > lastExecutionTime);
-        lastExecutionTime = new Date();
+    const newsList = await scrapeNewsList();
+    const newArticles = newsList.filter(news => new Date(news.date) > lastExecutionTime);
+    lastExecutionTime = new Date();
 
-        if (newArticles.length > 0) {
-            for (const news of newArticles) {
-                setdMessageToStgServer(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
-                //await interaction.channel.send(`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
-            }
-        } else {
-            //channel.send('新しい記事はありません。');
+    if (newArticles.length > 0) {
+        for (const news of newArticles) {
+            console.log("channels", Object.keys(config.config));
+            Object.keys(config.config).forEach(async channel_id => {
+                if (channel_id === 'base') return;
+
+                if (config.config[channel_id].cnn) {
+                    console.log(channel_id);
+                    sendMessageToStgServer(channel_id,`Title: ${news.title}\nLink: ${news.link}\nDate: ${news.date}`);
+                }
+            });
         }
+    } else {
+        //channel.send('新しい記事はありません。');
     }
-}, config.polling_time_sec * 1000);
+}, parseInt(process.env.POLLING_SEC) * 1000);
 

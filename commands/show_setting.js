@@ -6,6 +6,12 @@ module.exports = {
         .setName('show_setting')
         .setDescription('設定を表示します'),
     async execute(interaction) {
-        await interaction.reply(`設定\npolling間隔: ${config.polling_time_sec}秒\nCNN: ${config.cnn}\nチャンネルID: ${config.channel_id}`);
+        const channel_id=interaction.channelId;
+        console.log(config);
+        try {
+            await interaction.reply(`CNN: ${config.config[channel_id].cnn}`);
+        } catch (error) {
+            await interaction.reply(`設定が見つかりませんでした。`);
+        }
     },
 };
